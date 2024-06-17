@@ -1,2 +1,2 @@
-# WebD
-웹디자인 실기 연습
+# React
+React 실습
