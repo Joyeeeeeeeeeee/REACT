@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace="매퍼 인터페이스 경로" --> 
+<mapper namespace="com.aloha.server.mapper.FileMapper">
+
+
+<!--  목록  -->
+<select id="list" resultType="Files"> 
+    SELECT * FROM file2
+</select>
+
+<!--  조회  -->
+<select id="select" resultType="Files"> 
+    SELECT * FROM file2 WHERE no = #{no} 
+</select>
+
+<!--  등록  -->
+<insert id="insert" useGeneratedKeys="true" keyProperty="no">
+    INSERT INTO file2 
+    ( parent_table, parent_no, file_name, origin_name, file_path, file_size, file_code ) 
+    VALUES 
+    ( #{parentTable}, #{parentNo}, #{fileName}, #{originName}, #{filePath}, #{fileSize}, #{fileCode} ) 
+</insert>
+
+<!--  수정  -->
+<update id="update"> 
+    UPDATE file2 SET file_name = #{fileName} ,updated_at = now() WHERE no = #{no} 
+</update>
+
+<!--  삭제  -->
+<delete id="delete"> 
+    DELETE FROM file2 WHERE no = #{no} 
+</delete>
+
+<!-- 파일 목록 - 부모 테이블 기준 -->
+<select id="listByParent" resultType="Files">
+    SELECT *
+    FROM file2
+    WHERE parent_table = #{parentTable}
+      AND parent_no = #{parentNo}
+    ORDER BY reg_date DESC
+</select>
+
+</mapper>
