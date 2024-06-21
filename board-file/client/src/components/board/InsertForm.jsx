@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from '../board/CSS/insert.module.css'
+// ckeditor5
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import * as filesAPI from '../../apis/files'
 
 const InsertForm = ({ onInsert }) => {
     // 🧊 state
@@ -26,7 +30,7 @@ const InsertForm = ({ onInsert }) => {
     const onSubmit = () => {
         // 유효성 검사 ✅
         // ...일단 생략
-        
+
         // 파일 업로드에서는 
         // Content-Type : application/json -> multipart/form-data
         const formData = new FormData()
@@ -34,22 +38,64 @@ const InsertForm = ({ onInsert }) => {
         formData.append('writer', writer)
         formData.append('content', content)
 
-        // 파일 데이터 추가
-        if(files) {
-            for (let i = 0 ; i<files.length; i++){
-                const file = files[i];
-                formData.append('files', file)
-            }
-        }
-
         // 헤더
         const headers = {
-            'Content-type' : 'multipart/form-data'
+            'Content-type': 'multipart/form-data'
+        }
+
+        // 파일 데이터 추가
+        if (files) {
+            for (let i = 0; i < files.length; i++) {
+                // const file = files[i];
+                // formData.append('files', file)
+                formData.append(`files[${i}]`, files[i])
+            }
         }
 
         // onInsert(title, writer, content) // json
         onInsert(formData, headers)         // formData
     }
+
+    const customUploadAdapter = (loader) => {
+        return {
+            upload() {
+                return new Promise((resolve, reject) => {
+                    const formData = new FormData();
+                    loader.file.then(async (file) => {
+                        console.log(file);
+                        formData.append("parentTable", 'editor');
+                        formData.append("file", file);
+
+                        const headers = {
+                            'Content-Type': 'multipart/form-data'
+                        };
+
+                        let response = await filesAPI.upload(formData, headers);
+                        let data = await response.data;
+                        console.log(`data : ${data}`);
+
+                        // let newFile = data;
+                        // let newFileNo = newFile.no;
+
+                        let newFileNo = data;
+
+                        // 이미지 렌더링
+                        await resolve({
+                            default: `http://localhost:8080/files/img/${newFileNo}`
+                        })
+
+                    });
+                });
+            },
+        };
+    };
+
+    function uploadPlugin(editor) {
+        editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
+            return customUploadAdapter(loader);
+        };
+    }
+
     
     return (
         <div className='container'>
@@ -78,7 +124,49 @@ const InsertForm = ({ onInsert }) => {
                     </tr>
                     <tr>
                         <td colSpan={2}>
-                            <textarea cols="40" className={styles.formInput} rows={10} value={content} onChange={handleChangeContent}></textarea>
+                            {/* <textarea cols="40" className={styles.formInput} rows={10} value={content} onChange={handleChangeContent}></textarea> */}
+                            <CKEditor
+                                editor={ClassicEditor}
+                                config={{
+                                    placeholder: "내용을 입력하세요.",
+                                    toolbar: {
+                                        items: [
+                                            'undo', 'redo',
+                                            '|', 'heading',
+                                            '|', 'fontfamily', 'fontsize', 'fontColor', 'fontBackgroundColor',
+                                            '|', 'bold', 'italic', 'strikethrough', 'subscript', 'superscript', 'code',
+                                            '|', 'bulletedList', 'numberedList', 'todoList', 'outdent', 'indent',
+                                            '|', 'link', 'uploadImage', 'blockQuote', 'codeBlock',
+                                            '|', 'mediaEmbed',
+                                        ],
+                                        shouldNotGroupWhenFull: false
+                                    },
+                                    editorConfig: {
+                                        height: 500, // Set the desired height in pixels
+                                    },
+                                    alignment: {
+                                        options: ['left', 'center', 'right', 'justify'],
+                                    },
+
+                                    extraPlugins: [uploadPlugin]            // 업로드 플러그인
+                                }}
+                                data=""         // ⭐ 기존 컨텐츠 내용 입력 (HTML)
+                                onReady={editor => {
+                                    // You can store the "editor" and use when it is needed.
+                                    console.log('Editor is ready to use!', editor);
+                                }}
+                                onChange={(event, editor) => {
+                                    const data = editor.getData();
+                                    console.log({ event, editor, data });
+                                    setContent(data);
+                                }}
+                                onBlur={(event, editor) => {
+                                    console.log('Blur.', editor);
+                                }}
+                                onFocus={(event, editor) => {
+                                    console.log('Focus.', editor);
+                                }}
+                            />
                         </td>
                     </tr>
                     <tr>
