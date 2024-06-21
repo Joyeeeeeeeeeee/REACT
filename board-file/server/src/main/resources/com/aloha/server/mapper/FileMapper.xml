@@ -35,6 +35,17 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     DELETE FROM file2 WHERE no = #{no} 
 </delete>
 
+<!--  선택 삭제  -->
+<delete id="deleteFiles"> 
+    DELETE FROM file2 WHERE no IN ( ${no} )
+</delete>
+
+<!-- 파일 목록 삭제 -->
+<delete id="deleteByParent"> 
+    DELETE FROM file2
+    WHERE parent_table = #{parentTable}
+      AND parent_no = #{parentNo} 
+</delete>
 <!-- 파일 목록 - 부모 테이블 기준 -->
 <select id="listByParent" resultType="Files">
     SELECT *
@@ -42,6 +53,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     WHERE parent_table = #{parentTable}
       AND parent_no = #{parentNo}
     ORDER BY reg_date DESC
+</select>
+
+<!-- 게시글 번호 최댓값 -->
+<select id="maxPk" resultType="int">
+    SELECT MAX(no)
+    FROM file2
 </select>
 
 </mapper>

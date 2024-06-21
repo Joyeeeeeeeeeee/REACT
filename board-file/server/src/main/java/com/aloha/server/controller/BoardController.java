@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.aloha.server.dto.Board;
 import com.aloha.server.dto.Files;
@@ -89,6 +90,16 @@ public class BoardController {
     @PostMapping()
     // public ResponseEntity<?> create(@RequestBody Board board) { //Content-Type : application/json
     public ResponseEntity<?> create(Board board) { // Content-Type : multipart/form-data
+        log.info("게시글 등록");
+        List<MultipartFile> files = board.getFiles();
+
+        if (files != null){
+            for (MultipartFile file : files) {
+                log.info("file : " + file.getOriginalFilename());
+            }
+        }
+            
+
         try {
             Board neWBoard = boardService.insert(board);
             if( neWBoard != null )
@@ -97,12 +108,13 @@ public class BoardController {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);  
 
         } catch (Exception e) {
+            log.info(null, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
     @PutMapping()
-    public ResponseEntity<?> update(@RequestBody Board board) {
+    public ResponseEntity<?> update(Board board) {
         log.info("[PUT] - /boards - 게시글 수정");
         try {
             int result = boardService.update(board);

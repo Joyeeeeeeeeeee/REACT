@@ -1,10 +1,15 @@
 import React from 'react'
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import styles from '../board/CSS/read.module.css'
 import '../board/CSS/read.css'
 import { formatDate } from '../../apis/format';
+import * as format from '../../apis/format'
+// ckeditor5
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
-const Read = ({no, board, fileList, isLoading, onDownload}) => {
+
+const Read = ({ no, board, fileList, isLoading, onDownload }) => {
   const handleDownload = (no, fileName) => {
     // 중간 처리(confirm, 유효성검사 등)를 위해 바로 넘기지 않고 이와 같은 과정을 거침
     onDownload(no, fileName)
@@ -24,60 +29,68 @@ const Read = ({no, board, fileList, isLoading, onDownload}) => {
       {
         !isLoading && board && (
           <table className={styles.table}>
-          <tbody>
-            <tr>
-              <td>번호</td>
-              <td>
-                <input type="text" className={styles['form-input']} value={board.no} readOnly />
-              </td>
-            </tr>
-            <tr>
-              <td>등록일자</td>
-              <td>
-                <input type="text" className={styles['form-input']} value={formatDate(board.regDate)} readOnly />
-              </td>
-            </tr>
-            <tr>
-              <td>제목</td>
-              <td>
-                <input type="text" className={styles['form-input']} value={board.title} readOnly />
-              </td>
-            </tr>
-            <tr>
-              <td>작성자</td>
-              <td>
-                <input type="text" className={styles['form-input']} value={board.writer} readOnly />
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>내용</td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-                <textarea cols="40" rows={10} className={styles['form-input']} value={board.content} readOnly></textarea>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={2}>파일</td>
-            </tr>
-            <tr>
-              <td colSpan={2}>
-                {
-                  fileList.map((file) => (
-                    <div className="flex-box" key={file.no}>
-                      <div className="item">
-                        <span>{file.fileName}</span>
+            <tbody>
+              <tr>
+                <td>번호</td>
+                <td>
+                  <input type="text" className={styles['form-input']} value={board.no} readOnly />
+                </td>
+              </tr>
+              <tr>
+                <td>등록일자</td>
+                <td>
+                  <input type="text" className={styles['form-input']} value={formatDate(board.regDate)} readOnly />
+                </td>
+              </tr>
+              <tr>
+                <td>제목</td>
+                <td>
+                  <input type="text" className={styles['form-input']} value={board.title} readOnly />
+                </td>
+              </tr>
+              <tr>
+                <td>작성자</td>
+                <td>
+                  <input type="text" className={styles['form-input']} value={board.writer} readOnly />
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2}>내용</td>
+              </tr>
+              <tr>
+                <td colSpan={2}>
+                  {/* <textarea cols="40" rows={10} className={styles['form-input']} value={board.content} readOnly></textarea> */}
+                  <CKEditor editor={ClassicEditor}
+                    data={board.content}           // 조회할 데이터 컨텐츠 
+                    disabled={true}
+                    config={{
+                      toolbar: [],
+                    }}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td colSpan={2}>파일</td>
+              </tr>
+              <tr>
+                <td colSpan={2}>
+                  {
+                    fileList.map((file) => (
+                      <div className="flex-box" key={file.no}>
+                        <div className="item">
+                          <img src={`/files/img/${file.no}`} alt="썸네일 이미지" />
+                          <span>{file.originName} ({format.byteToUnit(file.fileSize)})</span>
+                        </div>
+                        <div className="item">
+                          <button className="btn" onClick={() => handleDownload(file.no, file.originName)}>다운로드</button>
+                        </div>
                       </div>
-                      <div className="item">
-                        <button className="btn" onClick={() => handleDownload(file.no, file.originName)}>다운로드</button>
-                      </div>
-                    </div>
-                  ))
-                }
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                    ))
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
         )
       }
 

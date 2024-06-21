@@ -27,8 +27,8 @@ public class FileServiceImpl implements FileService {
     @Autowired
     private FileMapper fileMapper;
 
-    @Value("${upload.path}")
-    private String uploadPath;  //업로드 경로
+    @Value("${upload.path}")    // applicaation.properties에 설정한 업로드 경로 속성명
+    private String uploadPath;  // 업로드 경로
 
     @Override
     public List<Files> list() throws Exception {
@@ -50,15 +50,40 @@ public class FileServiceImpl implements FileService {
         return fileMapper.update(file);
     }
 
+    // 파일 삭제
     @Override
     public int delete(int no) throws Exception {
-        return fileMapper.delete(no);
+        log.info("파일 삭제");
+        // 1. 파일 정보 조회
+        Files file = fileMapper.select(no);
+        
+        // 2. 파일 경로로 파일 객체 접근
+        String filePath = file.getFilePath();
+        File deleteFile = new File(filePath);
+
+        // 3. 파일시스템의 파일 삭제
+        // - 파일 존재여부 확인
+        if(!deleteFile.exists()) {
+            log.info("파일 존재 안 함");
+            int result = fileMapper.delete(no);
+            return result;
+        }
+        // - 파일 삭제
+        boolean deleted = deleteFile.delete();
+
+        // 4. DB의 파일 삭제
+        int result = 0;
+        if(deleted){
+            result = fileMapper.delete(no);
+            return result;
+        }
+        return result;
     }
 
     // 파일 업로드 로직
-    public Files uploadFile(Files fileInfo, MultipartFile file) throws Exception {
+    public int uploadFile(Files fileInfo, MultipartFile file) throws Exception {
         int result = 0;
-        if(file.isEmpty()) return null;
+        if(file.isEmpty()) return result;
 
         // 파일 원본명, 사이즈, 데이터
         String originName = file.getOriginalFilename();
@@ -81,33 +106,37 @@ public class FileServiceImpl implements FileService {
         uploadedFile.setFilePath(filePath);
         uploadedFile.setFileSize(fileSize);
         uploadedFile.setOriginName(originName);
-        uploadedFile.setFileCode(fileInfo.getFileCode());
+        // uploadedFile.setFileCode(fileInfo.getFileCode());
+        uploadedFile.setFileCode(0);
 
         result = fileMapper.insert(uploadedFile);
         log.info("result : " + result);
-        return null;
+        return result;
 
     }
 
     @Override
-    public Files upload(Files file) throws Exception {
-        Files uploadedFile = uploadFile(file, file.getFile());
-        if(uploadedFile != null) {
+    public int upload(Files file) throws Exception {
+        int result = uploadFile(file, file.getFile());
+        if(result > 0) {
+            result=fileMapper.maxPk();
             log.info("파일 업로드 성공!");
         }
-        return uploadedFile;
+        return result;
     }
 
     @Override
-    public List<Files> uploadFiles(Files fileInfo, List<MultipartFile> fileList) throws Exception {
-        List<Files> uploadedFileList = new ArrayList<Files>();
+    public int uploadFiles(Files fileInfo, List<MultipartFile> fileList) throws Exception {
+        int result=0;
+
+        // List<Files> uploadedFileList = new ArrayList<Files>();
         for (MultipartFile file : fileList) {
-            Files uplodedFile = uploadFile(fileInfo, file);
-            uploadedFileList.add(uplodedFile);
-            log.info("업로드된 파일 : " + uplodedFile);
+            result += uploadFile(fileInfo, file);
+            // uploadedFileList.add(uplodedFile);
+            // log.info("업로드된 파일 : " + uplodedFile);
         }
 
-        return uploadedFileList;
+        return result;
     }
 
     @Override
@@ -153,6 +182,23 @@ public class FileServiceImpl implements FileService {
         fis.close();
         sos.close();
         return 1;
-
     }
+
+    @Override
+    public int deleteFiles(String no) throws Exception {
+        String[] noList = no.split(",");
+        int result = 0;
+        for (String deleteNo : noList){
+            int fileNo = Integer.parseInt(deleteNo);
+            result += delete(fileNo);
+        }
+        return result;
+    }
+
+    @Override
+    public int deleteByParent(Files file) throws Exception {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'deleteByParent'");
+    }
+
 }
