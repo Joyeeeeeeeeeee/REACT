@@ -10,19 +10,20 @@ const TodoContainer = () => {
     const [input, setInput] = useState('')
 
     // 데이터 가져오기
+    // fetch : 데이터를 요청해서 값을 가져오는 JS 비동기 함수
     // ❓ Hook
     useEffect(() => {
-        // 비동기 요청
-        // fetch('http://localhost:8080/todos')
-        //     .then((response) => response.json())
-        //     .then((data) => setTodoList(data))
-        //     .catch((error) => console.log(error))
+        // 비동기 요청  
+        // fetch('http://localhost:8080/todos')         // 요청지 주소
+        //     .then((response) => response.json())     // 받을 데이터 형태의 빈 깡통으로 세팅
+        //     .then((data) => setTodoList(data))       // 실제 데이터가 담기는 곳.
+        //     .catch((error) => console.log(error))    // 에러 catch
         getList()
     }, [])
 
     // 🌞 할 일 리스트 가져오기
     const getList = () => {
-        fetch('http://localhost:8080/todos')
+         fetch('http://localhost:8080/todos')
         .then((response) => response.json())
         .then((data) => setTodoList(data))
         .catch((error) => console.log(error))
