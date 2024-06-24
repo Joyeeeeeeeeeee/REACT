@@ -50,7 +50,7 @@
         WHERE no = #{no}
     </update>
 
-    <!-- 상태 수정 -->
+    <!-- 상태 수정(완료) -->
     <update id="statusUpdate">
         UPDATE todo
            SET status = 1
@@ -65,8 +65,8 @@
     <!-- 전체 완료 -->
     <update id="completeAll">
       UPDATE todo 
-          SET status = 1
-              ,upd_date = now()
+        SET status = 1  
+           ,upd_date = now()
     </update> 
 
 </mapper>
