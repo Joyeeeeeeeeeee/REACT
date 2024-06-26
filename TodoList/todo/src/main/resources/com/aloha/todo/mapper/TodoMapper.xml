@@ -37,7 +37,7 @@
       <selectKey keyProperty="no" resultType="int" order="AFTER">
         SELECT LAST_INSERT_ID() FROM dual
       </selectKey>
-        INSERT INTO Todo ( name, status  )
+        INSERT INTO Todo ( name, status  ) 
         VALUES ( #{name}, #{status} )
     </insert>
 
