@@ -13,7 +13,7 @@
 
     <!-- 조회 -->
     <select id="select" resultType="Todo">
-        SELECT *
+        SELECT * 
         FROM todo
         WHERE no = #{no}
     </select>
